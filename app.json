@@ -1,0 +1,15 @@
+{
+  "package_id": "com.renato.g2guitartuner",
+  "edition": "202601",
+  "name": "G2 Multi Tuner",
+  "version": "0.1.0",
+  "min_app_version": "0.1.0",
+  "tagline": "Tune guitar, bass, and ukulele on G2",
+  "description": "Cross-platform tuner for Even Realities G2 with glasses and phone controls.",
+  "author": "Renato Castelo Branco Camargo Pereira",
+  "entrypoint": "index.html",
+  "permissions": {
+    "network": ["evenhub.evenrealities.com"],
+    "fs": ["./"]
+  }
+}
