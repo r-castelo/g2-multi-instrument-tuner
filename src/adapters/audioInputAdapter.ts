@@ -103,15 +103,8 @@ export class CompositeAudioInputAdapter implements AudioInputAdapter {
       }
     }
 
-    if (this.capabilities.bridgeAudioAvailable) {
-      const bridgeOk = await this.tryStartBridgeAudio();
-      if (bridgeOk) {
-        return;
-      }
-    }
-
-    this.emitStatus({ kind: "error", message: "No available microphone path" });
-    throw new Error("Unable to start phone or bridge microphone audio");
+    this.emitStatus({ kind: "error", source: "web_mic", message: "Phone microphone unavailable" });
+    throw new Error("Unable to start phone microphone audio");
   }
 
   private async stopInternal(emit = true): Promise<void> {
