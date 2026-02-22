@@ -61,15 +61,8 @@ export class PhoneUI implements PhoneView {
   }
 
   setAudioStatus(status: AudioStatus): void {
-    this.audioStatusEl.textContent = `Audio status: ${status.kind}`;
-
-    const source = status.source === "bridge_pcm"
-      ? "bridge PCM"
-      : status.source === "web_mic"
-        ? "web microphone"
-        : "n/a";
-
-    this.sourceStatusEl.textContent = `Source: ${source}`;
+    this.audioStatusEl.textContent = `Audio status: ${humanAudioStatus(status)}`;
+    this.sourceStatusEl.textContent = `Source: ${humanAudioSource(status)}`;
 
     if (status.kind !== "error") {
       this.setError(null);
@@ -160,6 +153,38 @@ export class PhoneUI implements PhoneView {
       button.classList.toggle("active", tuning.id === this.selection.tuning);
       this.tuningButtonsRoot.appendChild(button);
     }
+  }
+}
+
+function humanAudioSource(status: AudioStatus): string {
+  if (status.source === "bridge_pcm") return "Bridge mic";
+  if (status.source === "web_mic") return "Phone mic";
+  return "Unavailable";
+}
+
+function humanAudioStatus(status: AudioStatus): string {
+  switch (status.kind) {
+    case "starting":
+      return "Starting";
+    case "bridge_listening":
+      return "Listening";
+    case "bridge_active":
+      return "Live";
+    case "bridge_timeout":
+      return "Bridge timeout";
+    case "web_requesting":
+      return "Requesting permission";
+    case "web_active":
+      return "Live";
+    case "needs_user_resume":
+      return "Needs enable tap";
+    case "error":
+      return status.message ?? "Error";
+    case "stopped":
+      return "Stopped";
+    case "idle":
+    default:
+      return "Idle";
   }
 }
 

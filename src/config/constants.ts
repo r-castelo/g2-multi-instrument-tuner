@@ -34,14 +34,17 @@ export const TIMING = {
   REBUILD_RETRY_DELAY_MS: 300,
   SCROLL_COOLDOWN_MS: 300,
   BRIDGE_FIRST_AUDIO_TIMEOUT_MS: 1_500,
-  RENDER_INTERVAL_MS: 100,
-  STALE_READING_MS: 400,
+  RENDER_INTERVAL_MS: 70,
+  STALE_READING_MS: 900,
 } as const;
 
 export const AUDIO = {
-  FRAME_SIZE: 4096,
-  MIN_CONFIDENCE: 0.45,
-  MIN_RMS: 0.005,
+  FRAME_SIZE: 3072,
+  BRIDGE_FRAME_HOP: 768,
+  ACQUIRE_CONFIDENCE: 0.45,
+  SUSTAIN_CONFIDENCE: 0.2,
+  ACQUIRE_RMS: 0.005,
+  SUSTAIN_RMS: 0.002,
   WEB_POLL_MS: 50,
 } as const;
 
@@ -55,6 +58,7 @@ export const TUNING = {
   IN_TUNE_CENTS: 5,
   NEAR_TUNE_CENTS: 10,
   BAR_RANGE_CENTS: 50,
+  MARK_TUNED_STREAK: 1,
 } as const;
 
 export const STORAGE_KEYS = {
@@ -86,4 +90,8 @@ export const APP_TEXT = {
 export const MENU = {
   close: "Close",
   back: "Back",
+} as const;
+
+export const UI_GLYPHS = {
+  tuned: "*",
 } as const;

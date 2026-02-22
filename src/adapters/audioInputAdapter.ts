@@ -12,6 +12,7 @@ import type {
 interface AudioAdapterOptions {
   capabilities: PlatformCapabilities;
   frameSize?: number;
+  frameHop?: number;
   bridgeFirstFrameTimeoutMs?: number;
   webPollMs?: number;
 }
@@ -21,6 +22,7 @@ const BRIDGE_SAMPLE_RATE_HZ = 16_000;
 export class CompositeAudioInputAdapter implements AudioInputAdapter {
   private readonly capabilities: PlatformCapabilities;
   private readonly frameSize: number;
+  private readonly frameHop: number;
   private readonly bridgeFirstFrameTimeoutMs: number;
   private readonly webPollMs: number;
 
@@ -46,6 +48,10 @@ export class CompositeAudioInputAdapter implements AudioInputAdapter {
   constructor(options: AudioAdapterOptions) {
     this.capabilities = options.capabilities;
     this.frameSize = options.frameSize ?? AUDIO.FRAME_SIZE;
+    this.frameHop = Math.max(1, Math.min(
+      options.frameHop ?? AUDIO.BRIDGE_FRAME_HOP,
+      this.frameSize,
+    ));
     this.bridgeFirstFrameTimeoutMs =
       options.bridgeFirstFrameTimeoutMs ?? TIMING.BRIDGE_FIRST_AUDIO_TIMEOUT_MS;
     this.webPollMs = options.webPollMs ?? AUDIO.WEB_POLL_MS;
@@ -170,7 +176,7 @@ export class CompositeAudioInputAdapter implements AudioInputAdapter {
             frame[i] = this.bridgeCarry[i] ?? 0;
           }
 
-          this.bridgeCarry = this.bridgeCarry.slice(this.frameSize);
+          this.bridgeCarry = this.bridgeCarry.slice(this.frameHop);
           this.emitFrame({
             samples: frame,
             sampleRateHz: BRIDGE_SAMPLE_RATE_HZ,

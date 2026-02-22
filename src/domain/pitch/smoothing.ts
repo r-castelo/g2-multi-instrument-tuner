@@ -3,12 +3,18 @@ import type { PitchDetection } from "../../types/contracts";
 export interface PitchSmootherOptions {
   medianWindow: number;
   alpha: number;
+  attackAlpha: number;
+  releaseAlpha: number;
+  fastChangeHz: number;
   staleMs: number;
 }
 
 const DEFAULT_OPTIONS: PitchSmootherOptions = {
-  medianWindow: 5,
-  alpha: 0.35,
+  medianWindow: 3,
+  alpha: 0.5,
+  attackAlpha: 0.78,
+  releaseAlpha: 0.42,
+  fastChangeHz: 1.5,
   staleMs: 400,
 };
 
@@ -19,7 +25,20 @@ export class PitchSmoother {
   private lastTsMs = 0;
 
   constructor(options: Partial<PitchSmootherOptions> = {}) {
-    this.options = { ...DEFAULT_OPTIONS, ...options };
+    const merged = { ...DEFAULT_OPTIONS, ...options };
+
+    // Backward-compatible behavior: when alpha is explicitly provided and
+    // attack/release values are not, use that alpha for both.
+    if (options.alpha !== undefined) {
+      if (options.attackAlpha === undefined) {
+        merged.attackAlpha = options.alpha;
+      }
+      if (options.releaseAlpha === undefined) {
+        merged.releaseAlpha = options.alpha;
+      }
+    }
+
+    this.options = merged;
   }
 
   reset(): void {
@@ -39,7 +58,11 @@ export class PitchSmoother {
       if (this.emaFrequency === null) {
         this.emaFrequency = median;
       } else {
-        this.emaFrequency = this.options.alpha * median + (1 - this.options.alpha) * this.emaFrequency;
+        const deltaHz = Math.abs(median - this.emaFrequency);
+        const alpha = deltaHz >= this.options.fastChangeHz
+          ? this.options.attackAlpha
+          : this.options.releaseAlpha;
+        this.emaFrequency = alpha * median + (1 - alpha) * this.emaFrequency;
       }
 
       this.lastTsMs = tsMs;

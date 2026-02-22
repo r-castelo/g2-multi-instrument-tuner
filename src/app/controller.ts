@@ -73,6 +73,10 @@ export class Controller {
 
   private pendingFrame: PitchFrame | null = null;
   private processingFrame = false;
+  private detectionLocked = false;
+  private readonly tunedStrings = new Set<string>();
+  private readonly tunedStreakByString = new Map<string, number>();
+  private activeTarget: string | null = null;
 
   constructor(options: ControllerOptions) {
     this.glass = options.glass;
@@ -157,6 +161,11 @@ export class Controller {
 
   async retryAudio(): Promise<void> {
     await this.audio.stop();
+    this.smoother.reset();
+    this.detectionLocked = false;
+    this.currentReading = null;
+    this.activeTarget = null;
+    this.phone.setReading(null);
     await this.startAudio();
   }
 
@@ -227,6 +236,7 @@ export class Controller {
     const smoothed = this.smoother.next(filtered, frame.tsMs);
 
     this.currentReading = this.buildReading(smoothed, frame.source);
+    this.updateSessionTuningProgress(this.currentReading);
     this.phone.setReading(this.currentReading);
 
     if (this.state.mode === "TUNING") {
@@ -240,14 +250,18 @@ export class Controller {
   private filterDetection(detection: PitchDetection | null): PitchDetection | null {
     if (!detection) return null;
 
-    if (detection.confidence < AUDIO.MIN_CONFIDENCE) {
+    const minConfidence = this.detectionLocked
+      ? AUDIO.SUSTAIN_CONFIDENCE
+      : AUDIO.ACQUIRE_CONFIDENCE;
+    const minRms = this.detectionLocked
+      ? AUDIO.SUSTAIN_RMS
+      : AUDIO.ACQUIRE_RMS;
+
+    if (detection.confidence < minConfidence || detection.rms < minRms) {
       return null;
     }
 
-    if (detection.rms < AUDIO.MIN_RMS) {
-      return null;
-    }
-
+    this.detectionLocked = true;
     return detection;
   }
 
@@ -256,6 +270,7 @@ export class Controller {
     source: PitchFrame["source"],
   ): TunerReading | null {
     if (!detection) {
+      this.detectionLocked = false;
       return null;
     }
 
@@ -271,7 +286,10 @@ export class Controller {
       targetFrequencyHz: target.targetFrequencyHz,
       cents: target.cents,
       inTune: absCents <= TUNING.IN_TUNE_CENTS,
-      quality: absCents <= TUNING.NEAR_TUNE_CENTS ? "good" : "weak",
+      quality:
+        detection.confidence > 0 && detection.rms > 0
+          ? (absCents <= TUNING.NEAR_TUNE_CENTS ? "good" : "weak")
+          : "weak",
       source,
     };
   }
@@ -367,6 +385,9 @@ export class Controller {
   private async applySelection(nextSelection: TuningSelection): Promise<void> {
     const normalized = normalizeSelection(nextSelection);
     this.state.setSelection(normalized);
+    this.tunedStrings.clear();
+    this.tunedStreakByString.clear();
+    this.activeTarget = null;
 
     this.persistSelection(normalized);
 
@@ -403,6 +424,8 @@ export class Controller {
       reading: this.currentReading,
       status: this.latestAudioStatus,
       needsAudioEnable: this.needsAudioEnable,
+      tunedStrings: this.tunedStrings,
+      activeTarget: this.activeTarget,
     });
 
     if (force || !this.tuningDrawn) {
@@ -491,6 +514,33 @@ export class Controller {
     } catch {
       // Best effort only.
     }
+  }
+
+  private updateSessionTuningProgress(reading: TunerReading | null): void {
+    if (!reading) {
+      this.activeTarget = null;
+      this.tunedStreakByString.clear();
+      return;
+    }
+
+    const target = reading.targetStringName;
+    this.activeTarget = target;
+
+    if (this.tunedStrings.has(target)) {
+      return;
+    }
+
+    if (reading.inTune) {
+      const streak = (this.tunedStreakByString.get(target) ?? 0) + 1;
+      this.tunedStreakByString.set(target, streak);
+      if (streak >= TUNING.MARK_TUNED_STREAK) {
+        this.tunedStrings.add(target);
+        this.tunedStreakByString.delete(target);
+      }
+      return;
+    }
+
+    this.tunedStreakByString.set(target, 0);
   }
 
   getCurrentTuningsForPhone(): readonly TuningDefinition[] {

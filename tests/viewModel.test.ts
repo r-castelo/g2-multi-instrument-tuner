@@ -13,10 +13,15 @@ describe("buildTunerViewModel", () => {
       reading: null,
       status: { kind: "idle" },
       needsAudioEnable: false,
+      tunedStrings: new Set<string>(),
+      activeTarget: null,
     });
 
-    assert.ok(model.content.includes("Pluck a string"));
-    assert.ok(model.status.includes("IDLE"));
+    assert.ok(model.content.includes("[ GTR | Standard 6 ]"));
+    assert.ok(model.content.includes("No stable note detected"));
+    assert.ok(model.content.includes("FLAT ["));
+    assert.ok(model.content.includes("Hint: Pluck a string and let it ring"));
+    assert.ok(model.status.includes("Waiting for signal"));
     assert.ok(model.content.length <= 1000);
   });
 
@@ -38,9 +43,16 @@ describe("buildTunerViewModel", () => {
       },
       status: { kind: "web_active", source: "web_mic" },
       needsAudioEnable: false,
+      tunedStrings: new Set<string>(["G4", "C4", "A4"]),
+      activeTarget: "A4",
     });
 
-    assert.ok(model.content.includes("IN TUNE"));
-    assert.ok(model.status.includes("WEBMIC"));
+    assert.ok(model.content.includes("[ UKE | Standard 4 ]"));
+    assert.ok(model.content.includes("[G*]"));
+    assert.ok(model.content.includes("[C*]"));
+    assert.ok(model.content.includes(">A*<"));
+    assert.ok(model.content.includes("NOTE: A4"));
+    assert.ok(model.content.includes("Hint: Locked in. Move to next string"));
+    assert.ok(model.status.includes("Phone Mic: live"));
   });
 });
