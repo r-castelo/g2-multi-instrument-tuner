@@ -96,6 +96,17 @@ export class CompositeAudioInputAdapter implements AudioInputAdapter {
     await this.stopInternal(false);
     this.emitStatus({ kind: "starting" });
 
+    // 1. Try bridge audio first — this is the native path via EvenHub SDK
+    //    and is the only reliable source inside the EvenHub WebView.
+    if (this.capabilities.bridgeAudioAvailable) {
+      const bridgeOk = await this.tryStartBridgeAudio();
+      if (bridgeOk) {
+        return;
+      }
+    }
+
+    // 2. Fall back to Web Audio (getUserMedia) — works in regular browsers
+    //    for development / testing outside the EvenHub host.
     if (this.capabilities.webMicAvailable) {
       const webOk = await this.tryStartWebAudio();
       if (webOk) {
@@ -103,8 +114,8 @@ export class CompositeAudioInputAdapter implements AudioInputAdapter {
       }
     }
 
-    this.emitStatus({ kind: "error", source: "web_mic", message: "Phone microphone unavailable" });
-    throw new Error("Unable to start phone microphone audio");
+    this.emitStatus({ kind: "error", source: "web_mic", message: "No audio source available" });
+    throw new Error("Unable to start audio — neither bridge nor phone mic available");
   }
 
   private async stopInternal(emit = true): Promise<void> {
