@@ -62,3 +62,11 @@ npm run pack
 - `textContainerUpgrade()` is used for live tuning updates.
 - SDK click quirk is handled (`CLICK_EVENT` may deserialize as `undefined`).
 - Event routing checks `listEvent`, `textEvent`, and `sysEvent`.
+
+## Open Source
+
+This project is open source.
+
+## License
+
+Licensed under the MIT License. See `LICENSE`.
