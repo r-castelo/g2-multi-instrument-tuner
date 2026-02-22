@@ -96,13 +96,6 @@ export class CompositeAudioInputAdapter implements AudioInputAdapter {
     await this.stopInternal(false);
     this.emitStatus({ kind: "starting" });
 
-    if (this.capabilities.bridgeAudioAvailable) {
-      const bridgeOk = await this.tryStartBridgeAudio();
-      if (bridgeOk) {
-        return;
-      }
-    }
-
     if (this.capabilities.webMicAvailable) {
       const webOk = await this.tryStartWebAudio();
       if (webOk) {
@@ -110,8 +103,15 @@ export class CompositeAudioInputAdapter implements AudioInputAdapter {
       }
     }
 
+    if (this.capabilities.bridgeAudioAvailable) {
+      const bridgeOk = await this.tryStartBridgeAudio();
+      if (bridgeOk) {
+        return;
+      }
+    }
+
     this.emitStatus({ kind: "error", message: "No available microphone path" });
-    throw new Error("Unable to start bridge or web microphone audio");
+    throw new Error("Unable to start phone or bridge microphone audio");
   }
 
   private async stopInternal(emit = true): Promise<void> {
