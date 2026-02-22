@@ -240,6 +240,14 @@ export class GlassAdapterImpl implements GlassAdapter {
   }
 
   private mapEventToGesture(event: EvenHubEvent): GestureEvent | null {
+    const hasInputEvent = Boolean(
+      event.listEvent || event.textEvent || event.sysEvent,
+    );
+
+    if (!hasInputEvent) {
+      return null;
+    }
+
     const eventType =
       event.listEvent?.eventType ??
       event.textEvent?.eventType ??
@@ -261,10 +269,15 @@ export class GlassAdapterImpl implements GlassAdapter {
     }
 
     // CLICK_EVENT = 0 often arrives as undefined due SDK deserialization quirk.
-    if (
-      eventType === OsEventTypeList.CLICK_EVENT ||
-      eventType === undefined
-    ) {
+    if (eventType === OsEventTypeList.CLICK_EVENT) {
+      return {
+        kind: "TAP",
+        listIndex: event.listEvent?.currentSelectItemIndex,
+      };
+    }
+
+    // CLICK_EVENT = 0 can deserialize to undefined, but only for actual input events.
+    if (eventType === undefined) {
       return {
         kind: "TAP",
         listIndex: event.listEvent?.currentSelectItemIndex,
