@@ -1,6 +1,8 @@
 import {
   APP_TEXT,
   AUDIO,
+  BRIDGE_AUDIO,
+  BRIDGE_YIN,
   DEFAULT_SELECTION,
   MENU,
   STORAGE_KEYS,
@@ -55,6 +57,9 @@ export class Controller {
   private readonly state: AppStateMachine;
   private readonly smoother = new PitchSmoother({
     staleMs: TIMING.STALE_READING_MS,
+    medianWindow: 5,
+    attackAlpha: 0.6,
+    releaseAlpha: 0.3,
   });
 
   private unsubscribeGesture: Unsubscribe | null = null;
@@ -226,13 +231,14 @@ export class Controller {
   }
 
   private async handleFrame(frame: PitchFrame): Promise<void> {
+    const isBridge = frame.source === "bridge_pcm";
     const raw = detectPitchYin(frame.samples, frame.sampleRateHz, {
       minFreqHz: YIN.MIN_FREQ_HZ,
       maxFreqHz: YIN.MAX_FREQ_HZ,
-      threshold: YIN.THRESHOLD,
+      threshold: isBridge ? BRIDGE_YIN.THRESHOLD : YIN.THRESHOLD,
     });
 
-    const filtered = this.filterDetection(raw);
+    const filtered = this.filterDetection(raw, isBridge);
     const smoothed = this.smoother.next(filtered, frame.tsMs);
 
     this.currentReading = this.buildReading(smoothed, frame.source);
@@ -247,15 +253,16 @@ export class Controller {
     }
   }
 
-  private filterDetection(detection: PitchDetection | null): PitchDetection | null {
+  private filterDetection(detection: PitchDetection | null, isBridge: boolean): PitchDetection | null {
     if (!detection) return null;
 
+    const thresholds = isBridge ? BRIDGE_AUDIO : AUDIO;
     const minConfidence = this.detectionLocked
-      ? AUDIO.SUSTAIN_CONFIDENCE
-      : AUDIO.ACQUIRE_CONFIDENCE;
+      ? thresholds.SUSTAIN_CONFIDENCE
+      : thresholds.ACQUIRE_CONFIDENCE;
     const minRms = this.detectionLocked
-      ? AUDIO.SUSTAIN_RMS
-      : AUDIO.ACQUIRE_RMS;
+      ? thresholds.SUSTAIN_RMS
+      : thresholds.ACQUIRE_RMS;
 
     if (detection.confidence < minConfidence || detection.rms < minRms) {
       return null;

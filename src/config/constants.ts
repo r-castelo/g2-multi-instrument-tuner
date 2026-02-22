@@ -48,17 +48,30 @@ export const AUDIO = {
   WEB_POLL_MS: 50,
 } as const;
 
+/** Stricter thresholds for the low-quality glasses bridge mic (16 kHz MEMS). */
+export const BRIDGE_AUDIO = {
+  ACQUIRE_CONFIDENCE: 0.65,
+  SUSTAIN_CONFIDENCE: 0.40,
+  ACQUIRE_RMS: 0.008,
+  SUSTAIN_RMS: 0.004,
+} as const;
+
 export const YIN = {
   MIN_FREQ_HZ: 35,
   MAX_FREQ_HZ: 500,
   THRESHOLD: 0.1,
 } as const;
 
+/** More conservative YIN threshold for noisy bridge mic. */
+export const BRIDGE_YIN = {
+  THRESHOLD: 0.08,
+} as const;
+
 export const TUNING = {
   IN_TUNE_CENTS: 5,
   NEAR_TUNE_CENTS: 10,
   BAR_RANGE_CENTS: 50,
-  MARK_TUNED_STREAK: 1,
+  MARK_TUNED_STREAK: 3,
 } as const;
 
 export const STORAGE_KEYS = {
