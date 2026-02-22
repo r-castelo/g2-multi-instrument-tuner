@@ -1,0 +1,87 @@
+.phone-app {
+  max-width: 560px;
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-12);
+  padding-bottom: var(--space-24);
+}
+
+.phone-header {
+  display: grid;
+  gap: 2px;
+}
+
+.phone-card-header {
+  padding-bottom: 0;
+}
+
+.phone-stack {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.phone-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.phone-row--between {
+  justify-content: space-between;
+}
+
+.phone-select {
+  width: 100%;
+}
+
+.phone-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.phone-actions button {
+  flex: 1 1 150px;
+}
+
+.phone-reading-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-8) var(--space-12);
+}
+
+.phone-reading-item {
+  display: grid;
+  gap: 2px;
+}
+
+.phone-value {
+  overflow-wrap: anywhere;
+}
+
+.phone-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.phone-error {
+  color: var(--color-tc-red);
+}
+
+.phone-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.phone-footer {
+  text-align: center;
+  margin-top: var(--space-8);
+}
+
+@media (max-width: 480px) {
+  .phone-reading-grid {
+    grid-template-columns: 1fr;
+  }
+}

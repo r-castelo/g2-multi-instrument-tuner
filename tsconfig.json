@@ -3,11 +3,12 @@
     "target": "ES2019",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "jsx": "react-jsx",
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node"],
+    "types": ["node", "react", "react-dom"],
     "rootDir": "."
   },
   "include": ["src", "tests"]

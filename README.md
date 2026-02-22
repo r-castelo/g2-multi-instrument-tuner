@@ -12,9 +12,9 @@ Cross-platform (iPhone + Android) multi-instrument tuner for Even Realities G2 s
 - Controls:
   - Glasses: tap to open instrument/tuning menus
   - Phone: instrument/tuning controls, audio retry, live readout
+  - Phone companion UI: `@jappyjan/even-realities-ui`
 - Audio strategy:
-  - Bridge-first (`audioControl` + `audioEvent`)
-  - Fallback to Web mic (`getUserMedia` + `AudioContext`)
+  - Phone mic only (`getUserMedia` + `AudioContext`)
 
 ## Development
 
@@ -46,14 +46,14 @@ npm run pack
 ## Project structure
 
 - `src/adapters/glassAdapter.ts` - EvenHub SDK rendering + events
-- `src/adapters/audioInputAdapter.ts` - bridge-first audio with web fallback
+- `src/adapters/audioInputAdapter.ts` - phone microphone capture adapter
 - `src/adapters/capabilities.ts` - iPhone/Android capability detection
 - `src/app/controller.ts` - app state orchestration
 - `src/app/state.ts` - mode and selection state machine
 - `src/domain/pitch/*` - YIN pitch detection + smoothing
 - `src/domain/music/*` - notes and tuning catalog
 - `src/domain/tuner/*` - string targeting and glass view model
-- `src/phone/phoneUI.ts` - phone companion UI bindings
+- `src/phone/phoneUI.tsx` - React phone companion UI bindings
 - `tests/*` - unit tests and fallback wiring checks
 
 ## Known G2 considerations
